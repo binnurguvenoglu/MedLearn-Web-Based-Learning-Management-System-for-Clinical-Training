@@ -1,4 +1,4 @@
-# Private Clinic Management System - Sprint 1
+# Private Clinic Management System - Sprint 2
 
 This repository contains a simple full-stack private clinic management system.
 
@@ -95,8 +95,43 @@ Open: `http://localhost:5173`
 - `GET /api/patients/:id`
 - `PUT /api/patients/:id`
 - `DELETE /api/patients/:id`
-- `GET /api/appointments?date=YYYY-MM-DD`
+- `GET /api/users/doctors`
+- `GET /api/appointments?date=YYYY-MM-DD&doctor_id=&status=&search=`
 - `POST /api/appointments`
+- `PUT /api/appointments/:id`
+- `PATCH /api/appointments/:id/status`
+- `PATCH /api/appointments/:id/cancel`
+
+## Sprint 2 Features
+
+- Appointment update with doctor/date-time change and conflict prevention
+- Appointment cancellation via status (`cancelled`) instead of hard delete
+- Appointment status management (`scheduled`, `arrived`, `completed`, `cancelled`, `no_show`)
+- Appointment filtering by date, doctor, status and text search
+- Dashboard upgrades:
+  - today's appointments
+  - upcoming appointments
+  - quick status counts
+- Appointments page upgrades:
+  - filters section
+  - create form validation
+  - edit appointment form
+  - cancel button
+  - status badge and status update control
+
+## Sprint 2 Migration
+
+If your DB was created in Sprint 1, run:
+
+- `server/migrations/sprint2.sql`
+
+This adds `completed` to appointment status enum and creates status index.
+
+## Optional Sample Seed
+
+Optional sample appointment seed:
+
+- `server/seed.sql`
 
 ## Manual Test Instructions
 
@@ -112,8 +147,12 @@ Open: `http://localhost:5173`
 6. Appointment:
    - Create appointment for a doctor and time
    - Create another with same `doctor_id` + same `start_time` -> should return 400 conflict message
+   - Update appointment date/time/doctor and verify conflict rule still works
+   - Cancel appointment and verify status becomes `cancelled`
+   - Update appointment status to `arrived/completed/no_show` and verify in list
+   - Filter by doctor/status/date and verify correct rows
 
 ## Role Access Rules (Implemented)
 
-- `admin`, `receptionist`: can manage patients and appointments
-- `doctor`: read-only access to patient list/detail and appointment list; cannot create/update/delete patients or create appointments
+- `admin`, `receptionist`: can manage patients and appointments (create/update/cancel)
+- `doctor`: read-only for patients and appointment listing, but can update appointment status

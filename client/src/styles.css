@@ -262,6 +262,16 @@ label {
   text-align: left;
   padding: 8px 6px;
   font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.table thead th {
+  color: #36505f;
+  font-weight: 700;
+}
+
+.table tbody tr:hover {
+  background: #f6fbff;
 }
 
 .error {
@@ -283,6 +293,48 @@ label {
 .auth-switch a {
   color: var(--primary);
   font-weight: 700;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.status-scheduled {
+  color: #3f4953;
+  background: #edf1f5;
+}
+
+.status-arrived {
+  color: #0c5f57;
+  background: #d9f1ee;
+}
+
+.status-completed {
+  color: #0f5f2f;
+  background: #daf6e8;
+}
+
+.status-cancelled {
+  color: #8b1e1e;
+  background: #fde6e6;
+}
+
+.status-no_show {
+  color: #7a4010;
+  background: #ffeccd;
+}
+
+.status-select {
+  width: auto;
+  min-width: 118px;
+  margin-right: 6px;
+  padding: 6px 8px;
 }
 
 @media (max-width: 720px) {

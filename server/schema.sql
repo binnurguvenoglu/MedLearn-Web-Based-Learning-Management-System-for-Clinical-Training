@@ -1,5 +1,5 @@
 create type user_role as enum ('admin', 'receptionist', 'doctor');
-create type appointment_status as enum ('scheduled', 'cancelled', 'arrived', 'no_show');
+create type appointment_status as enum ('scheduled', 'arrived', 'completed', 'cancelled', 'no_show');
 
 create table if not exists users (
   id bigint generated always as identity primary key,
@@ -34,3 +34,4 @@ create index if not exists idx_patients_tc on patients (tc);
 create index if not exists idx_patients_phone on patients (phone);
 create index if not exists idx_appointments_start_time on appointments (start_time);
 create index if not exists idx_appointments_doctor_start_time on appointments (doctor_id, start_time);
+create index if not exists idx_appointments_status on appointments (status);

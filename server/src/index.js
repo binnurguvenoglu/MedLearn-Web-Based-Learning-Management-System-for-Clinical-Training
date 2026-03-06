@@ -6,6 +6,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patients.js";
 import appointmentRoutes from "./routes/appointments.js";
+import userRoutes from "./routes/users.js";
 import { query } from "./db.js";
 
 const app = express();
@@ -34,6 +35,7 @@ app.get("/health", async (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/users", userRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });

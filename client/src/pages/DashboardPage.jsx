@@ -10,7 +10,16 @@ function todayISO() {
 }
 
 export default function DashboardPage() {
-  const [appointments, setAppointments] = useState([]);
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [counts, setCounts] = useState({
+    totalToday: 0,
+    scheduled: 0,
+    arrived: 0,
+    completed: 0,
+    cancelled: 0,
+    no_show: 0
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const date = todayISO();
@@ -19,8 +28,28 @@ export default function DashboardPage() {
     let active = true;
     async function load() {
       try {
-        const data = await api.getAppointments(date);
-        if (active) setAppointments(data);
+        const [today, upcoming] = await Promise.all([
+          api.getAppointments({ date }),
+          api.getAppointments({ date_from: date })
+        ]);
+        if (!active) return;
+
+        const nextFive = upcoming
+          .filter((item) => new Date(item.start_time) >= new Date())
+          .slice(0, 5);
+
+        const statusCounts = today.reduce(
+          (acc, item) => {
+            acc.totalToday += 1;
+            acc[item.status] = (acc[item.status] || 0) + 1;
+            return acc;
+          },
+          { totalToday: 0, scheduled: 0, arrived: 0, completed: 0, cancelled: 0, no_show: 0 }
+        );
+
+        setTodayAppointments(today);
+        setUpcomingAppointments(nextFive);
+        setCounts(statusCounts);
       } catch (err) {
         if (active) setError(err.message);
       } finally {
@@ -41,8 +70,16 @@ export default function DashboardPage() {
           <p>{date}</p>
         </div>
         <div className="card stat-card">
-          <h3>Appointments</h3>
-          <p>{appointments.length}</p>
+          <h3>Total Today</h3>
+          <p>{counts.totalToday}</p>
+        </div>
+        <div className="card stat-card">
+          <h3>Scheduled</h3>
+          <p>{counts.scheduled}</p>
+        </div>
+        <div className="card stat-card">
+          <h3>Completed</h3>
+          <p>{counts.completed}</p>
         </div>
       </div>
 
@@ -50,8 +87,8 @@ export default function DashboardPage() {
         <h3>Today's Appointments</h3>
         {loading && <p>Loading...</p>}
         {error && <p className="error">{error}</p>}
-        {!loading && !error && appointments.length === 0 && <p>No appointments today.</p>}
-        {!loading && appointments.length > 0 && (
+        {!loading && !error && todayAppointments.length === 0 && <p>No appointments today.</p>}
+        {!loading && todayAppointments.length > 0 && (
           <table className="table">
             <thead>
               <tr>
@@ -62,12 +99,39 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {appointments.map((item) => (
+              {todayAppointments.map((item) => (
                 <tr key={item.id}>
                   <td>{new Date(item.start_time).toLocaleString()}</td>
                   <td>{item.patient_name}</td>
                   <td>{item.doctor_name}</td>
-                  <td>{item.status}</td>
+                  <td><span className={`status-chip status-${item.status}`}>{item.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Upcoming Appointments</h3>
+        {!loading && upcomingAppointments.length === 0 && <p>No upcoming appointments.</p>}
+        {!loading && upcomingAppointments.length > 0 && (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {upcomingAppointments.map((item) => (
+                <tr key={item.id}>
+                  <td>{new Date(item.start_time).toLocaleString()}</td>
+                  <td>{item.patient_name}</td>
+                  <td>{item.doctor_name}</td>
+                  <td><span className={`status-chip status-${item.status}`}>{item.status}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -77,4 +141,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

@@ -81,11 +81,34 @@ export const api = {
     request(`/api/patients/${id}`, {
       method: "DELETE"
     }),
-  getAppointments: (date) =>
-    request(`/api/appointments?date=${encodeURIComponent(date)}`),
+  getAppointments: (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.date) params.set("date", filters.date);
+    if (filters.date_from) params.set("date_from", filters.date_from);
+    if (filters.date_to) params.set("date_to", filters.date_to);
+    if (filters.doctor_id) params.set("doctor_id", String(filters.doctor_id));
+    if (filters.status) params.set("status", filters.status);
+    if (filters.search) params.set("search", filters.search);
+    return request(`/api/appointments?${params.toString()}`);
+  },
   createAppointment: (payload) =>
     request("/api/appointments", {
       method: "POST",
       body: JSON.stringify(payload)
-    })
+    }),
+  updateAppointment: (id, payload) =>
+    request(`/api/appointments/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    }),
+  cancelAppointment: (id) =>
+    request(`/api/appointments/${id}/cancel`, {
+      method: "PATCH"
+    }),
+  updateAppointmentStatus: (id, status) =>
+    request(`/api/appointments/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status })
+    }),
+  getDoctors: () => request("/api/users/doctors")
 };
