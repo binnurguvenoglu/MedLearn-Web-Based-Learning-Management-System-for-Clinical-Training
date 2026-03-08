@@ -7,6 +7,8 @@ import authRoutes from "./routes/auth.js";
 import patientRoutes from "./routes/patients.js";
 import appointmentRoutes from "./routes/appointments.js";
 import userRoutes from "./routes/users.js";
+import dashboardRoutes from "./routes/dashboard.js";
+import prescriptionRoutes from "./routes/prescriptions.js";
 import { query } from "./db.js";
 
 const app = express();
@@ -36,6 +38,20 @@ app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+
+app.use((error, _req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  if (error?.type === "entity.parse.failed") {
+    return res.status(400).json({ message: "Invalid JSON payload" });
+  }
+
+  return res.status(500).json({ message: "Internal server error" });
+});
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });

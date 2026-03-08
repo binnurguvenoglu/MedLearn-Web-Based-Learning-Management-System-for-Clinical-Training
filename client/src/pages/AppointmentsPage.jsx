@@ -35,6 +35,14 @@ export default function AppointmentsPage() {
     start_time: defaultDateTime,
     status: "scheduled"
   });
+  const [creating, setCreating] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [busyActionId, setBusyActionId] = useState(null);
+  const nowMs = Date.now();
+
+  function isPendingStatusUpdate(item) {
+    return item.status === "scheduled" && new Date(item.start_time).getTime() < nowMs;
+  }
 
   async function loadAppointments(activeFilters = filters) {
     setLoading(true);
@@ -63,8 +71,24 @@ export default function AppointmentsPage() {
   }, []);
 
   function validatePayload(payload) {
+    const patientId = Number(payload.patient_id);
+    const doctorId = Number(payload.doctor_id);
+    const startTime = new Date(payload.start_time);
+
     if (!payload.patient_id || !payload.doctor_id || !payload.start_time) {
       return "Patient ID, doctor and start time are required";
+    }
+    if (!Number.isInteger(patientId) || patientId <= 0) {
+      return "Patient ID must be a positive number";
+    }
+    if (!Number.isInteger(doctorId) || doctorId <= 0) {
+      return "Please select a valid doctor";
+    }
+    if (Number.isNaN(startTime.getTime())) {
+      return "Start time is invalid";
+    }
+    if (startTime.getTime() < Date.now() - 60000) {
+      return "Appointment date/time cannot be in the past";
     }
     return "";
   }
@@ -79,6 +103,7 @@ export default function AppointmentsPage() {
       setError(validationError);
       return;
     }
+    setCreating(true);
     try {
       await api.createAppointment({
         patient_id: Number(form.patient_id),
@@ -90,6 +115,8 @@ export default function AppointmentsPage() {
       await loadAppointments(filters);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -115,6 +142,7 @@ export default function AppointmentsPage() {
       setError(validationError);
       return;
     }
+    setSavingEdit(true);
     try {
       await api.updateAppointment(editing.id, {
         patient_id: Number(editForm.patient_id),
@@ -127,6 +155,8 @@ export default function AppointmentsPage() {
       await loadAppointments(filters);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -135,24 +165,30 @@ export default function AppointmentsPage() {
     if (!window.confirm("Cancel this appointment?")) return;
     setError("");
     setSuccess("");
+    setBusyActionId(id);
     try {
       await api.cancelAppointment(id);
       setSuccess("Appointment cancelled");
       await loadAppointments(filters);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyActionId(null);
     }
   }
 
   async function onStatusChange(id, status) {
     setError("");
     setSuccess("");
+    setBusyActionId(id);
     try {
       await api.updateAppointmentStatus(id, status);
       setSuccess("Appointment status updated");
       await loadAppointments(filters);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyActionId(null);
     }
   }
 
@@ -193,9 +229,10 @@ export default function AppointmentsPage() {
             value={filters.search}
             onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
           />
-          <button className="btn" onClick={() => loadAppointments(filters)}>Apply Filters</button>
+          <button className="btn" onClick={() => loadAppointments(filters)} disabled={loading}>Apply Filters</button>
           <button
             className="btn btn-muted"
+            disabled={loading}
             onClick={() => {
               setFilters(emptyFilters);
               loadAppointments(emptyFilters);
@@ -250,7 +287,9 @@ export default function AppointmentsPage() {
             <option value="cancelled">cancelled</option>
             <option value="no_show">no_show</option>
           </select>
-          <button className="btn" disabled={!canManage}>Create</button>
+          <button className="btn" disabled={!canManage || creating}>
+            {creating ? "Creating..." : "Create"}
+          </button>
         </form>
       </div>
 
@@ -293,8 +332,13 @@ export default function AppointmentsPage() {
               <option value="cancelled">cancelled</option>
               <option value="no_show">no_show</option>
             </select>
-            <button className="btn">Save</button>
-            <button type="button" className="btn btn-muted" onClick={() => setEditing(null)}>
+            <button className="btn" disabled={savingEdit}>{savingEdit ? "Saving..." : "Save"}</button>
+            <button
+              type="button"
+              className="btn btn-muted"
+              disabled={savingEdit}
+              onClick={() => setEditing(null)}
+            >
               Close
             </button>
           </form>
@@ -319,18 +363,22 @@ export default function AppointmentsPage() {
             </thead>
             <tbody>
               {appointments.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} className={isPendingStatusUpdate(item) ? "row-pending-status" : ""}>
                   <td>{item.id}</td>
                   <td>{new Date(item.start_time).toLocaleString()}</td>
                   <td>{item.patient_name}</td>
                   <td>{item.doctor_name}</td>
                   <td>
                     <span className={`status-chip status-${item.status}`}>{item.status}</span>
+                    {isPendingStatusUpdate(item) && (
+                      <span className="status-chip status-pending-update">pending status update</span>
+                    )}
                   </td>
                   <td>
                     <select
                       className="status-select"
                       value={item.status}
+                      disabled={busyActionId === item.id}
                       onChange={(e) => onStatusChange(item.id, e.target.value)}
                     >
                       <option value="scheduled">scheduled</option>
@@ -345,10 +393,28 @@ export default function AppointmentsPage() {
                         <button
                           className="btn btn-small btn-danger"
                           onClick={() => onCancelAppointment(item.id)}
-                          disabled={item.status === "cancelled"}
+                          disabled={item.status === "cancelled" || busyActionId === item.id}
                         >
-                          Cancel
+                          {busyActionId === item.id ? "Working..." : "Cancel"}
                         </button>
+                        {isPendingStatusUpdate(item) && (
+                          <>
+                            <button
+                              className="btn btn-small"
+                              onClick={() => onStatusChange(item.id, "completed")}
+                              disabled={busyActionId === item.id}
+                            >
+                              Mark Completed
+                            </button>
+                            <button
+                              className="btn btn-small btn-muted"
+                              onClick={() => onStatusChange(item.id, "no_show")}
+                              disabled={busyActionId === item.id}
+                            >
+                              Mark No-show
+                            </button>
+                          </>
+                        )}
                       </>
                     )}
                   </td>
@@ -356,7 +422,7 @@ export default function AppointmentsPage() {
               ))}
               {appointments.length === 0 && (
                 <tr>
-                  <td colSpan={6}>No appointments found.</td>
+                  <td colSpan={6}>No appointments scheduled.</td>
                 </tr>
               )}
             </tbody>

@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, setSession } from "../api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const reason = searchParams.get("reason");
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -71,6 +73,9 @@ export default function LoginPage() {
             required
           />
 
+          {reason === "session-expired" && (
+            <p className="warning">Your session expired. Please login again.</p>
+          )}
           {error && <p className="error">{error}</p>}
           <button className="btn auth-submit" disabled={loading}>
             {loading ? "Signing in..." : "Login"}

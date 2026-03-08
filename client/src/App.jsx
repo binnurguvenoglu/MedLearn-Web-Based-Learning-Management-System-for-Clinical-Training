@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import PatientsPage from "./pages/PatientsPage.jsx";
 import AppointmentsPage from "./pages/AppointmentsPage.jsx";
+import PrescriptionsPage from "./pages/PrescriptionsPage.jsx";
 
 function ProtectedLayout({ children }) {
   const token = getToken();
@@ -33,6 +34,7 @@ function ProtectedLayout({ children }) {
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/patients">Patients</Link>
         <Link to="/appointments">Appointments</Link>
+        <Link to="/prescriptions">Prescriptions</Link>
       </nav>
       <main className="content">{children}</main>
     </div>
@@ -65,6 +67,14 @@ export default function App() {
         element={
           <ProtectedLayout>
             <AppointmentsPage />
+          </ProtectedLayout>
+        }
+      />
+      <Route
+        path="/prescriptions"
+        element={
+          <ProtectedLayout>
+            <PrescriptionsPage />
           </ProtectedLayout>
         }
       />

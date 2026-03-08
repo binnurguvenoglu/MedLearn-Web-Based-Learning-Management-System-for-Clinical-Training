@@ -12,6 +12,9 @@ export default function PatientsPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [formError, setFormError] = useState("");
 
   async function loadPatients(value = search) {
     setLoading(true);
@@ -33,6 +36,25 @@ export default function PatientsPage() {
   async function onSubmit(e) {
     e.preventDefault();
     if (!canEdit) return;
+    setFormError("");
+    const normalizedPhone = String(form.phone || "").trim();
+    const normalizedTc = String(form.tc || "").trim();
+    const birthDate = new Date(form.birth_date);
+
+    if (!/^\d{11}$/.test(normalizedTc)) {
+      setFormError("TC must be exactly 11 digits.");
+      return;
+    }
+    if (!/^\+?\d{10,15}$/.test(normalizedPhone)) {
+      setFormError("Phone must be 10-15 digits, optional + prefix.");
+      return;
+    }
+    if (Number.isNaN(birthDate.getTime()) || birthDate > new Date()) {
+      setFormError("Birth date must be valid and not in the future.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.updatePatient(editingId, form);
@@ -44,6 +66,8 @@ export default function PatientsPage() {
       await loadPatients();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -60,11 +84,14 @@ export default function PatientsPage() {
   async function onDelete(id) {
     if (!canEdit) return;
     if (!window.confirm("Delete this patient?")) return;
+    setActionLoadingId(id);
     try {
       await api.deletePatient(id);
       await loadPatients();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoadingId(null);
     }
   }
 
@@ -115,13 +142,14 @@ export default function PatientsPage() {
             required
             disabled={!canEdit}
           />
-          <button className="btn" disabled={!canEdit}>
-            {editingId ? "Update" : "Add"}
+          <button className="btn" disabled={!canEdit || submitting}>
+            {submitting ? "Saving..." : editingId ? "Update" : "Add"}
           </button>
           {editingId && (
             <button
               type="button"
               className="btn btn-muted"
+              disabled={submitting}
               onClick={() => {
                 setEditingId(null);
                 setForm(emptyForm);
@@ -131,6 +159,7 @@ export default function PatientsPage() {
             </button>
           )}
         </form>
+        {formError && <p className="error">{formError}</p>}
       </div>
 
       <div className="card">
@@ -159,7 +188,13 @@ export default function PatientsPage() {
                   <td>{String(item.birth_date).slice(0, 10)}</td>
                   <td>
                     <button className="btn btn-small" onClick={() => onEdit(item)}>Edit</button>
-                    <button className="btn btn-small btn-danger" onClick={() => onDelete(item.id)}>Delete</button>
+                    <button
+                      className="btn btn-small btn-danger"
+                      onClick={() => onDelete(item.id)}
+                      disabled={actionLoadingId === item.id}
+                    >
+                      {actionLoadingId === item.id ? "Deleting..." : "Delete"}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -175,4 +210,3 @@ export default function PatientsPage() {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-# Private Clinic Management System - Sprint 2
+# Private Clinic Management System - Sprint 4 (Prescriptions)
 
 This repository contains a simple full-stack private clinic management system.
 
@@ -96,11 +96,59 @@ Open: `http://localhost:5173`
 - `PUT /api/patients/:id`
 - `DELETE /api/patients/:id`
 - `GET /api/users/doctors`
+- `GET /api/dashboard/summary`
+- `POST /api/prescriptions`
+- `GET /api/prescriptions?patient_id=`
+- `GET /api/prescriptions/:id`
 - `GET /api/appointments?date=YYYY-MM-DD&doctor_id=&status=&search=`
 - `POST /api/appointments`
 - `PUT /api/appointments/:id`
 - `PATCH /api/appointments/:id/status`
 - `PATCH /api/appointments/:id/cancel`
+
+## Sprint 4 Features (Prescription Management)
+
+- Added `prescriptions` table linked with patients, doctors and optional appointments
+- Doctors can create prescriptions
+- Users can list prescriptions by patient
+- Users can retrieve a specific prescription
+- Prescription history view available in frontend
+- Integrated with existing patients and appointments modules
+
+## Sprint 3 Features
+
+- Dashboard analytics summary endpoint:
+  - total patients
+  - total doctors
+  - total appointments
+  - completed appointments
+  - cancelled appointments
+  - today's appointments count
+  - upcoming appointments count
+- Optional grouped summary by appointment status
+- Recent appointments section for quick overview
+- Safe default counts (`0`) when tables are empty
+- Sprint 1 and Sprint 2 compatibility preserved
+
+## Sprint 5 Improvements (Validation & UX Stability)
+
+- Stronger backend validation for patient and appointment payloads
+  - patient `tc` must be 11 digits
+  - phone must be 10-15 digits (optional `+`)
+  - birth date cannot be future
+  - appointment ids and foreign keys must be positive integers
+  - appointment date/time cannot be in the past
+- Consistent JSON error handling
+  - invalid JSON body now returns `400 { message: "Invalid JSON payload" }`
+- Better frontend error handling
+  - server-side validation details are shown in friendly messages
+  - automatic redirect to login when JWT is invalid/expired (401)
+  - clear forbidden action message for 403 responses
+- UX and reliability improvements
+  - confirmation dialogs for destructive actions
+  - buttons disabled during submit/cancel/save actions
+  - clearer loading and empty states in forms/lists
+  - form-level validation feedback for patients and appointments
 
 ## Sprint 2 Features
 
@@ -133,6 +181,12 @@ Optional sample appointment seed:
 
 - `server/seed.sql`
 
+## Sprint 4 Migration
+
+If your DB was created before prescription module, run:
+
+- `server/migrations/sprint4.sql`
+
 ## Manual Test Instructions
 
 1. Register a doctor and receptionist users via `POST /api/auth/register`.
@@ -151,6 +205,21 @@ Optional sample appointment seed:
    - Cancel appointment and verify status becomes `cancelled`
    - Update appointment status to `arrived/completed/no_show` and verify in list
    - Filter by doctor/status/date and verify correct rows
+7. Dashboard summary:
+   - Open dashboard and verify cards for patient/doctor/appointment totals
+   - Verify today and upcoming counts
+   - Verify grouped status chips
+   - Verify recent appointments list
+8. Validation and reliability checks:
+   - Try invalid patient phone/tc/birth date and verify validation errors
+   - Try appointment in the past and verify validation error
+   - Send malformed JSON payload and verify `Invalid JSON payload`
+   - Use expired/invalid token and verify redirect to login
+9. Prescription module checks:
+   - Login as doctor and create a prescription
+   - Verify non-doctor role cannot create prescriptions (403)
+   - Load prescription history for selected patient
+   - Open single prescription by id endpoint
 
 ## Role Access Rules (Implemented)
 

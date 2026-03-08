@@ -47,7 +47,22 @@ async function request(path, options = {}) {
     : await response.text();
 
   if (!response.ok) {
-    const message = (data && data.message) || "Request failed";
+    const baseMessage = (data && data.message) || "Request failed";
+    const validationDetails = Array.isArray(data?.errors) ? `: ${data.errors.join(", ")}` : "";
+    const message = `${baseMessage}${validationDetails}`;
+
+    if (response.status === 401) {
+      clearSession();
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login?reason=session-expired";
+      }
+      throw new Error("Session expired. Please login again.");
+    }
+
+    if (response.status === 403) {
+      throw new Error("You do not have permission for this action.");
+    }
+
     throw new Error(message);
   }
   return data;
@@ -110,5 +125,14 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status })
     }),
-  getDoctors: () => request("/api/users/doctors")
+  createPrescription: (payload) =>
+    request("/api/prescriptions", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
+  getPrescriptions: (patient_id) =>
+    request(`/api/prescriptions?patient_id=${encodeURIComponent(String(patient_id || ""))}`),
+  getPrescription: (id) => request(`/api/prescriptions/${id}`),
+  getDoctors: () => request("/api/users/doctors"),
+  getDashboardSummary: () => request("/api/dashboard/summary")
 };
