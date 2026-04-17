@@ -7,6 +7,7 @@ import PatientsPage from "./pages/PatientsPage.jsx";
 import AppointmentsPage from "./pages/AppointmentsPage.jsx";
 import PrescriptionsPage from "./pages/PrescriptionsPage.jsx";
 
+// Giris yapmis kullanicilar icin ortak kabuk yapisini ve oturum kontrolunu saglar.
 function ProtectedLayout({ children }) {
   const token = getToken();
   const user = getUser();
@@ -41,6 +42,7 @@ function ProtectedLayout({ children }) {
   );
 }
 
+// Tum sayfa yonlendirmelerini tek merkezden tanimlar.
 export default function App() {
   return (
     <Routes>

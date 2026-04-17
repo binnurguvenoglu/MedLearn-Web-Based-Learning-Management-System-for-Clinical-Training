@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+// Randevu ve filtre ekranlarinda kullanilmak uzere doktor listesini dondurur.
 router.get("/doctors", requireRole("admin", "receptionist", "doctor"), async (_req, res) => {
   try {
     const result = await query(
@@ -21,4 +22,3 @@ router.get("/doctors", requireRole("admin", "receptionist", "doctor"), async (_r
 });
 
 export default router;
-

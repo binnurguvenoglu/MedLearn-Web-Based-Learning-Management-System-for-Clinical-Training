@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, getUser } from "../api";
 
+// JavaScript Date nesnesini input alanlari icin YYYY-MM-DD formatina cevirir.
 function toDateISO(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -13,8 +14,10 @@ const defaultDate = toDateISO(now);
 const defaultDateTime = `${defaultDate}T09:00`;
 const emptyFilters = { date: defaultDate, doctor_id: "", status: "", search: "" };
 
+// Randevu olusturma, filtreleme ve durum guncelleme akislarini yonetir.
 export default function AppointmentsPage() {
   const user = getUser();
+  // Yonetimsel randevu islemleri sadece admin ve receptionist icin aciktir.
   const canManage = useMemo(() => ["admin", "receptionist"].includes(user?.role), [user]);
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -40,10 +43,12 @@ export default function AppointmentsPage() {
   const [busyActionId, setBusyActionId] = useState(null);
   const nowMs = Date.now();
 
+  // Gecmis saatte kalmis ama hala "scheduled" gorunen kayitlari vurgular.
   function isPendingStatusUpdate(item) {
     return item.status === "scheduled" && new Date(item.start_time).getTime() < nowMs;
   }
 
+  // Aktif filtrelere gore randevu listesini yeniler.
   async function loadAppointments(activeFilters = filters) {
     setLoading(true);
     setError("");
@@ -58,6 +63,7 @@ export default function AppointmentsPage() {
   }
 
   useEffect(() => {
+    // Sayfa acilisinda doktor listesini ve gunluk randevulari beraber hazirlar.
     async function init() {
       try {
         const doctorsData = await api.getDoctors();
@@ -70,6 +76,7 @@ export default function AppointmentsPage() {
     init();
   }, []);
 
+  // Formdan gelen randevu verisinin temel kurallara uyup uymadigini kontrol eder.
   function validatePayload(payload) {
     const patientId = Number(payload.patient_id);
     const doctorId = Number(payload.doctor_id);
@@ -93,6 +100,7 @@ export default function AppointmentsPage() {
     return "";
   }
 
+  // Yeni randevu olusturur ve listeyi tekrar yukler.
   async function onCreate(e) {
     e.preventDefault();
     if (!canManage) return;
@@ -120,6 +128,7 @@ export default function AppointmentsPage() {
     }
   }
 
+  // Duzenlenecek randevuyu ayri form state'ine kopyalar.
   function startEdit(item) {
     setEditing(item);
     setEditForm({
@@ -132,6 +141,7 @@ export default function AppointmentsPage() {
     setSuccess("");
   }
 
+  // Duzenleme formunu backend'e gonderir.
   async function onEditSubmit(e) {
     e.preventDefault();
     if (!canManage || !editing) return;
@@ -160,6 +170,7 @@ export default function AppointmentsPage() {
     }
   }
 
+  // Randevuyu iptal edilmis durumuna ceker.
   async function onCancelAppointment(id) {
     if (!canManage) return;
     if (!window.confirm("Cancel this appointment?")) return;
@@ -177,6 +188,7 @@ export default function AppointmentsPage() {
     }
   }
 
+  // Liste uzerinden hizli durum degisikligi yapilmasini saglar.
   async function onStatusChange(id, status) {
     setError("");
     setSuccess("");

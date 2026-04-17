@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+// Ana panel icin ozet sayilar, durum dagilimi ve son randevulari tek istekte dondurur.
 router.get("/summary", requireRole("admin", "receptionist", "doctor"), async (_req, res) => {
   try {
     const summaryResult = await query(
@@ -50,6 +51,7 @@ router.get("/summary", requireRole("admin", "receptionist", "doctor"), async (_r
       upcoming_appointments: Number(row.upcoming_appointments || 0)
     };
 
+    // Eksik status gelirse frontend tarafinda undefined gorulmemesi icin sifirdan baslar.
     const groupedByStatus = {
       scheduled: 0,
       arrived: 0,

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, getUser } from "../api";
 
+// Doktorlarin recete olusturdugu ve gecmisi goruntuleyebildigi sayfa.
 export default function PrescriptionsPage() {
   const user = getUser();
+  // Yeni recete yazma yetkisi yalnizca doktordadir.
   const canCreate = useMemo(() => user?.role === "doctor", [user]);
   const [patients, setPatients] = useState([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
@@ -19,6 +21,7 @@ export default function PrescriptionsPage() {
     notes: ""
   });
 
+  // Hasta secim listesi icin tum hastalari ceker.
   async function loadPatients() {
     try {
       const data = await api.getPatients("");
@@ -28,6 +31,7 @@ export default function PrescriptionsPage() {
     }
   }
 
+  // Secilen hastaya ait recete gecmisini backend'den alir.
   async function loadPrescriptions(patientId = selectedPatientId) {
     if (!patientId) {
       setPrescriptions([]);
@@ -49,6 +53,7 @@ export default function PrescriptionsPage() {
     loadPatients();
   }, []);
 
+  // Doktorun girdigi recete verisini dogrulayip kaydeder.
   async function onSubmit(e) {
     e.preventDefault();
     if (!canCreate) return;
@@ -209,4 +214,3 @@ export default function PrescriptionsPage() {
     </div>
   );
 }
-

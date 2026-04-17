@@ -6,20 +6,24 @@ const router = express.Router();
 const appointmentStatuses = new Set(["scheduled", "arrived", "completed", "cancelled", "no_show"]);
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
+// Route parametrelerinden gelen id degerlerini pozitif tamsayi olarak dogrular.
 function parsePositiveInt(value) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+// Filtrelerde kullanilan tarih formatinin YYYY-MM-DD oldugunu kontrol eder.
 function isValidISODate(value) {
   return isoDateRegex.test(String(value || ""));
 }
 
+// Randevu baslangic zamanini gecerli bir Date nesnesine cevirir.
 function parseStartTime(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+// Randevu olusturma ve guncelleme payload'ini normalize eder.
 function validateAppointmentPayload(payload) {
   const patientId = parsePositiveInt(payload.patient_id);
   const doctorId = parsePositiveInt(payload.doctor_id);
@@ -51,6 +55,7 @@ function validateAppointmentPayload(payload) {
 
 router.use(requireAuth);
 
+// Tarih, doktor, durum ve arama kriterlerine gore randevulari listeler.
 router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const { date, date_from, date_to, doctor_id, status, search } = req.query;
@@ -122,6 +127,7 @@ router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res)
   }
 });
 
+// Yeni randevu olusturur ve doktor saat cakismasini engeller.
 router.post("/", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const { errors, normalized } = validateAppointmentPayload(req.body || {});
@@ -172,6 +178,7 @@ router.post("/", requireRole("admin", "receptionist"), async (req, res) => {
   }
 });
 
+// Mevcut randevuyu gunceller ve tekrar cakisma kontrolu yapar.
 router.put("/:id", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const appointmentId = parsePositiveInt(req.params.id);
@@ -238,6 +245,7 @@ router.put("/:id", requireRole("admin", "receptionist"), async (req, res) => {
   }
 });
 
+// Liste ekranindan hizli status guncellemesi yapmak icin kullanilir.
 router.patch("/:id/status", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const appointmentId = parsePositiveInt(req.params.id);
@@ -266,6 +274,7 @@ router.patch("/:id/status", requireRole("admin", "receptionist", "doctor"), asyn
   }
 });
 
+// Randevuyu soft-delete yerine cancelled durumuna alir.
 router.patch("/:id/cancel", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const appointmentId = parsePositiveInt(req.params.id);

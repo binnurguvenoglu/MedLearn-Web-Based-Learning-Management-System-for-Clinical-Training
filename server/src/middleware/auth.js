@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 
+// Bearer token'i dogrular ve cozulmus kullaniciyi req.user icine yazar.
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {
@@ -16,6 +17,7 @@ export function requireAuth(req, res, next) {
   }
 }
 
+// Route'a sadece belirtilen rollerin erismesine izin verir.
 export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user) {
@@ -27,4 +29,3 @@ export function requireRole(...roles) {
     return next();
   };
 }
-

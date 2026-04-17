@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
+// Klinik ozet metriklerini ve son randevulari gosteren ana sayfa.
 export default function DashboardPage() {
   const [summary, setSummary] = useState({
     total_patients: 0,
@@ -24,6 +25,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let active = true;
+
+    // Sayfa acilisinda dashboard verilerini tek istekte toplar.
     async function load() {
       try {
         const data = await api.getDashboardSummary();

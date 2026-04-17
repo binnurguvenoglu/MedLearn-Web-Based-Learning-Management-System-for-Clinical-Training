@@ -2,25 +2,30 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000
 const TOKEN_KEY = "clinic_token";
 const USER_KEY = "clinic_user";
 
+// JWT token'i localStorage'dan okuyarak korumali isteklerde kullanir.
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+// Login sonrasi token ve kullanici bilgisini tarayici oturumunda saklar.
 export function setSession(token, user) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
+// Logout veya oturum hatasinda kayitli oturum bilgisini temizler.
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
 
+// Arayuzde rol ve ad gibi bilgiler icin kullanici nesnesini geri dondurur.
 export function getUser() {
   const raw = localStorage.getItem(USER_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
+// Tum HTTP isteklerini tek noktada yonetir ve ortak hata yakalama saglar.
 async function request(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -51,6 +56,7 @@ async function request(path, options = {}) {
     const validationDetails = Array.isArray(data?.errors) ? `: ${data.errors.join(", ")}` : "";
     const message = `${baseMessage}${validationDetails}`;
 
+    // 401 durumunda kullaniciyi tekrar login ekranina yonlendirir.
     if (response.status === 401) {
       clearSession();
       if (!window.location.pathname.includes("/login")) {
@@ -68,6 +74,7 @@ async function request(path, options = {}) {
   return data;
 }
 
+// Frontend'in backend endpoint'lerini kolay kullanmasi icin hazir API katmani.
 export const api = {
   login: (email, password) =>
     request("/api/auth/login", {

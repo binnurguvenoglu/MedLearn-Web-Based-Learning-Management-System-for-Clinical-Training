@@ -3,8 +3,10 @@ import { api, getUser } from "../api";
 
 const emptyForm = { full_name: "", tc: "", phone: "", birth_date: "" };
 
+// Hasta listeleme, ekleme, guncelleme ve silme islemlerini yonetir.
 export default function PatientsPage() {
   const user = getUser();
+  // Sadece admin ve receptionist rolleri kayit uzerinde degisiklik yapabilir.
   const canEdit = useMemo(() => ["admin", "receptionist"].includes(user?.role), [user]);
   const [search, setSearch] = useState("");
   const [patients, setPatients] = useState([]);
@@ -16,6 +18,7 @@ export default function PatientsPage() {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [formError, setFormError] = useState("");
 
+  // Arama terimine gore hasta listesini backend'den ceker.
   async function loadPatients(value = search) {
     setLoading(true);
     setError("");
@@ -33,6 +36,7 @@ export default function PatientsPage() {
     loadPatients("");
   }, []);
 
+  // Hasta formunu olusturma ve guncelleme icin ortak kullanir.
   async function onSubmit(e) {
     e.preventDefault();
     if (!canEdit) return;
@@ -71,6 +75,7 @@ export default function PatientsPage() {
     }
   }
 
+  // Secilen hastanin verilerini form alanlarina tasir.
   function onEdit(item) {
     setEditingId(item.id);
     setForm({
@@ -81,6 +86,7 @@ export default function PatientsPage() {
     });
   }
 
+  // Silme islemi oncesinde kullanicidan son onay alir.
   async function onDelete(id) {
     if (!canEdit) return;
     if (!window.confirm("Delete this patient?")) return;

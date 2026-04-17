@@ -1,3 +1,4 @@
+-- Sprint 4 ile gelen recete tablosunu ve ilgili indeksleri ekler.
 create table if not exists prescriptions (
   id bigint generated always as identity primary key,
   patient_id bigint not null references patients(id) on delete cascade,
@@ -12,4 +13,3 @@ create table if not exists prescriptions (
 create index if not exists idx_prescriptions_patient on prescriptions (patient_id);
 create index if not exists idx_prescriptions_doctor on prescriptions (doctor_id);
 create index if not exists idx_prescriptions_created_at on prescriptions (created_at);
-

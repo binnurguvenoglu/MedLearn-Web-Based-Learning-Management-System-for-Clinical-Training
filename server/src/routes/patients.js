@@ -6,11 +6,13 @@ const router = express.Router();
 const phoneRegex = /^\+?\d{10,15}$/;
 const tcRegex = /^\d{11}$/;
 
+// URL veya body icinden gelen sayisal id'leri guvenli sekilde dogrular.
 function parsePositiveInt(value) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+// Dogum tarihinin gecerli ve gelecekte olmadigini kontrol eder.
 function validateBirthDate(value) {
   if (!value) return false;
   const date = new Date(value);
@@ -20,6 +22,7 @@ function validateBirthDate(value) {
   return date <= today;
 }
 
+// Hasta formundan gelen veriyi temizler ve tum hata mesajlarini toplar.
 function validatePatientPayload(payload) {
   const errors = [];
   const fullName = String(payload.full_name || "").trim();
@@ -37,6 +40,7 @@ function validatePatientPayload(payload) {
 
 router.use(requireAuth);
 
+// Arama varsa ada, TC'ye veya telefona gore; yoksa son kayitlari listeler.
 router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const search = (req.query.search || "").trim();
@@ -61,6 +65,7 @@ router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res)
   }
 });
 
+// Yeni hasta kaydi olusturur.
 router.post("/", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const { errors, normalized } = validatePatientPayload(req.body || {});
@@ -83,6 +88,7 @@ router.post("/", requireRole("admin", "receptionist"), async (req, res) => {
   }
 });
 
+// Tek bir hastanin detay bilgisini getirir.
 router.get("/:id", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const patientId = parsePositiveInt(req.params.id);
@@ -100,6 +106,7 @@ router.get("/:id", requireRole("admin", "receptionist", "doctor"), async (req, r
   }
 });
 
+// Var olan hasta kaydini gunceller.
 router.put("/:id", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const patientId = parsePositiveInt(req.params.id);
@@ -131,6 +138,7 @@ router.put("/:id", requireRole("admin", "receptionist"), async (req, res) => {
   }
 });
 
+// Hasta kaydini siler; iliskili kayitlar DB kurallarina gore etkilenir.
 router.delete("/:id", requireRole("admin", "receptionist"), async (req, res) => {
   try {
     const patientId = parsePositiveInt(req.params.id);

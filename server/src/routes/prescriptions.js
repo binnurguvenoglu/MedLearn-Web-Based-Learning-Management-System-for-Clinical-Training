@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Query ve route parametrelerindeki id degerlerini dogrulamak icin kullanilir.
 function parsePositiveInt(value) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
@@ -11,6 +12,7 @@ function parsePositiveInt(value) {
 
 router.use(requireAuth);
 
+// Doktorun yeni recete olusturmasini saglar.
 router.post("/", requireRole("doctor"), async (req, res) => {
   try {
     const patientId = parsePositiveInt(req.body?.patient_id);
@@ -60,6 +62,7 @@ router.post("/", requireRole("doctor"), async (req, res) => {
   }
 });
 
+// Gerekirse hasta bazli filtreleyerek recete gecmisini listeler.
 router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const patientId = req.query.patient_id ? parsePositiveInt(req.query.patient_id) : null;
@@ -94,6 +97,7 @@ router.get("/", requireRole("admin", "receptionist", "doctor"), async (req, res)
   }
 });
 
+// Tek bir recetenin detay kaydini dondurur.
 router.get("/:id", requireRole("admin", "receptionist", "doctor"), async (req, res) => {
   try {
     const prescriptionId = parsePositiveInt(req.params.id);
@@ -123,4 +127,3 @@ router.get("/:id", requireRole("admin", "receptionist", "doctor"), async (req, r
 });
 
 export default router;
-

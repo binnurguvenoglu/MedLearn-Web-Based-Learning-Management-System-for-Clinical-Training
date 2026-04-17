@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, setSession } from "../api";
 
+// Kullanici girisini yapar ve basarili durumda oturumu baslatir.
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const reason = searchParams.get("reason");
 
+  // Form gonderildiginde backend'e login istegi atar.
   async function onSubmit(e) {
     e.preventDefault();
     setError("");

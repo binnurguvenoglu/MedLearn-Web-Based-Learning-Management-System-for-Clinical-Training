@@ -1,6 +1,8 @@
+-- Kullanici rolleri ve randevu durumlari icin tekrar kullanilan enum tipleri.
 create type user_role as enum ('admin', 'receptionist', 'doctor');
 create type appointment_status as enum ('scheduled', 'arrived', 'completed', 'cancelled', 'no_show');
 
+-- Sisteme giris yapabilen personel hesaplari.
 create table if not exists users (
   id bigint generated always as identity primary key,
   name text not null,
@@ -10,6 +12,7 @@ create table if not exists users (
   created_at timestamptz not null default now()
 );
 
+-- Klinik tarafinda takip edilen hasta kayitlari.
 create table if not exists patients (
   id bigint generated always as identity primary key,
   full_name text not null,
@@ -19,6 +22,7 @@ create table if not exists patients (
   created_at timestamptz not null default now()
 );
 
+-- Her doktor-hasta gorusmesini zaman ve durum bilgisiyle saklar.
 create table if not exists appointments (
   id bigint generated always as identity primary key,
   patient_id bigint not null references patients(id) on delete cascade,
@@ -29,6 +33,7 @@ create table if not exists appointments (
   created_at timestamptz not null default now()
 );
 
+-- Doktorlar tarafindan yazilan receteleri saklar.
 create table if not exists prescriptions (
   id bigint generated always as identity primary key,
   patient_id bigint not null references patients(id) on delete cascade,
@@ -40,6 +45,7 @@ create table if not exists prescriptions (
   created_at timestamptz not null default now()
 );
 
+-- Sorgu performansini arttiran yardimci indeksler.
 create index if not exists idx_patients_full_name on patients using gin (to_tsvector('simple', full_name));
 create index if not exists idx_patients_tc on patients (tc);
 create index if not exists idx_patients_phone on patients (phone);

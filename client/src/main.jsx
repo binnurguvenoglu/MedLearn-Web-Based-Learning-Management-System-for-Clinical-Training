@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import "./styles.css";
 
+// Uygulamanin tum React agacini router ile birlikte DOM'a baglar.
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -11,4 +12,3 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </React.StrictMode>
 );
-

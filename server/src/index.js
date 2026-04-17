@@ -11,6 +11,7 @@ import dashboardRoutes from "./routes/dashboard.js";
 import prescriptionRoutes from "./routes/prescriptions.js";
 import { query } from "./db.js";
 
+// Express uygulamasini olusturur ve tum API modullerini tek yerde birlestirir.
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -21,6 +22,7 @@ app.use(
 );
 app.use(express.json());
 
+// Sunucu ve veritabani ayakta mi diye kontrol etmek icin kullanilan hafif endpoint.
 app.get("/health", async (_req, res) => {
   try {
     await query("select 1");
@@ -41,6 +43,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 
+// JSON parse ve beklenmeyen hatalari ortak sekilde yanitlar.
 app.use((error, _req, res, next) => {
   if (res.headersSent) {
     return next(error);
@@ -53,6 +56,7 @@ app.use((error, _req, res, next) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
+// Tanimsiz endpoint'leri 404 ile sonlandirir.
 app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });
 });

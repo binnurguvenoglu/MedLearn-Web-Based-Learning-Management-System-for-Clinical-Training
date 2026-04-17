@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 
+// Yeni klinik personeli olusturmak icin kullanilan kayit ekrani.
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Kayit basarili olursa kullaniciyi login ekranina geri yollar.
   async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -112,4 +114,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
